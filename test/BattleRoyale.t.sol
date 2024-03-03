@@ -6,10 +6,43 @@ import {BattleRoyale} from "../src/BattleRoyale.sol";
 
 contract BattleRoyaleTest is Test {
     BattleRoyale public br;
+    address public owner;
+
+    receive() external payable {}
 
     function setUp() public {
 
         br = new BattleRoyale();
+        owner = address(this);
+    }
+
+    function testPayWinnerAndOwner() public {
+        address senderAddress1 = vm.addr(1);
+
+        vm.prank(senderAddress1);
+        vm.deal(senderAddress1, 1 gwei);
+
+        (bool success, ) = address(br).call{value: 1 gwei}("");
+        require(success, "Failed to send Ether");
+
+        address senderAddress2 = vm.addr(2);
+
+        vm.prank(senderAddress2);
+        vm.deal(senderAddress2, 1 gwei);
+
+        (success, ) = address(br).call{value: 1 gwei}("");
+        require(success, "Failed to send Ether");
+
+        assertEq(address(br).balance, 2 gwei);
+
+        vm.prank(owner);
+        br.payWinnerAndOwner(senderAddress1);
+
+        // assertEq(address(owner).balance, (2 gwei / 100));
+        console.logUint(address(owner).balance);
+        assertEq(address(br).balance, 0);
+        assertEq(address(senderAddress1).balance, (2 gwei - (2 gwei / 100)));
+
     }
 
     function test_Receive() public {

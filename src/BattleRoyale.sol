@@ -25,6 +25,21 @@ contract BattleRoyale {
         balances[msg.sender] = userAmount;
     }
 
+    function payWinnerAndOwner(address _winnerAddress) public {
+        require(msg.sender == owner, "Only the owner can withdraw");
+
+        uint256 ownerAmount = ownerBalance;
+        ownerBalance = 0;
+
+        (bool success, ) = payable(owner).call{value: ownerAmount}("");
+        require(success, "Transfer to owner failed");
+
+        uint256 winnerAmount = address(this).balance;
+
+        (success, ) = payable(_winnerAddress).call{value: winnerAmount}("");
+        require(success, "Transfer failed");
+    }
+
     function getSenderBalance(address _address) public view returns (uint256) {
         return balances[_address];
     }
